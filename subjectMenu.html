@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ADD CLASSES</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Questions</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="http://code.jquery.com/jquery-2.0.0.js"></script>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
+    <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    
+    <!-- Latest compiled and minified CSS-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    
+    <!-- Include the compiled Ratchet CSS -->
+    <link href="ratchet.css" rel="stylesheet">
+    
+    <link rel="stylesheet" type="text/css" href="main.css">
+  </head>
+  <body> 
+      <!-- Make sure all your bars are the first things in your <body> -->
+      
+      <header class="bar bar-nav">
+          <br>
+        <h1 id="subject" class="title pink">MY CLASSES</h1>
+        <div class="icon pull-right dropdown" id="dropdown">
+              <div class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><img src="dropdown-menu-button.svg" id="dropdown-button"></div>
+              <ul class="dropdown-menu dropdown-menu-right">
+                  <li><a href="#" id="delete-toggle" onclick="toggleDelete()">Delete</a></li>
+                  <li><a href="profile.html">Profile</a></li>
+                  <li><a href="signOut.html">Log out</a></li>
+              </ul></div>
+    </header>
+      <div id="white-container">
+          <div id="button" style="width: 60px ; height:  60px ; position: absolute; right: 40px; bottom: 40px;"><img style="width: 100% ; height:  100% ;"src="assets/add.svg"></div>
+      
+          <ul class="table-view" id="class-list" style="margin-top: 50px">
+          </ul>
+      </div>
+          
+      <script src="https://www.gstatic.com/firebasejs/3.2.0/firebase.js"></script>
+      <script>
+          var isDeleting = false;
+          
+          function addToDatabase() {
+              console.log("Retrieving current user...");
+              console.log(localStorage.uid);
+              firebase.database().ref("users").child(localStorage.uid).set({
+                  name: localStorage.username,
+                  phone: localStorage.phoneNumber,
+                  email: localStorage.email,
+              });
+              firebase.database().ref("users").child(localStorage.uid).child("questions").set({
+                  questionNumber: 0,
+                  question0: 0
+              });
+              firebase.database().ref("users").child(localStorage.uid).child("classes").set({
+              });
+          }
+
+          function initializeFirebase() {
+              var config = {
+                  apiKey: "AIzaSyB8T4pCLKOBoP1l52ztAqvRXAGHPea_V-A",
+                  authDomain: "prototype2016-e5247.firebaseapp.com",
+                  databaseURL: "https://prototype2016-e5247.firebaseio.com",
+                  storageBucket: "prototype2016-e5247.appspot.com",
+              };
+              app = firebase.initializeApp(config);
+              console.log("Initialized firebase");
+          }
+
+          function displayClasses() {
+              $("#class-list").empty();
+              var isBlue = false;
+              var ref = firebase.database().ref("users").child(localStorage.uid).child("classes");
+              ref.once("value").then(function(snapshot) {
+                  snapshot.forEach(function(childSnapshot) {
+                        var className = childSnapshot.key;
+                        var newLi = document.createElement("li");
+                        var node = document.createTextNode(className);
+                        var a = document.createElement("a");
+                        var img = document.createElement("img");
+                        img.setAttribute("src", "delete-button.svg");
+                        img.setAttribute("class", "delete-button");
+                        img.setAttribute("id", "delete-" + className);
+                        a.appendChild(node);
+                        a.setAttribute("class", "navigate-right");
+                        a.setAttribute("href", "askQuestion.html?subject=" + className);
+                        newLi.appendChild(img);
+                        newLi.appendChild(a);
+                        newLi.setAttribute("id", className);
+                        if (isBlue) {
+                            newLi.setAttribute("class", "table-view-cell subject-line blueRow");
+                            isBlue = false;
+                        } else {
+                            newLi.setAttribute("class", "table-view-cell subject-line whiteRow");
+                            isBlue = true;
+                        }
+                        document.getElementById("class-list").appendChild(newLi);
+                        setDeleteButtonStyle();
+                        addDeleteFunctionality();
+                    });
+              });
+          }
+          
+          window.onload = function() {
+              initializeFirebase();
+              var newUser = location.search.split("newUser=")[1];
+              document.getElementById("button").addEventListener("click", function() {
+                    window.location = "addClasses.html";
+              });
+              
+              if (newUser == "true") {
+                  addToDatabase();
+              } else {
+                  console.log("Displaying classes...");
+                  displayClasses();
+              }
+          }
+          
+          function toggleDelete() {
+              isDeleting = !isDeleting;
+              setDeleteButtonStyle();
+              if (isDeleting) {
+                  var links = document.getElementsByClassName("navigate-right");
+                  for (var i = 0; i < links.length; i++) {
+                      links[i].setAttribute("href", "#");
+                  }
+              } else {
+                  displayClasses();
+              }
+          }
+          
+          function addDeleteFunctionality() {
+              var deleteButton = document.getElementsByClassName("delete-button");
+              for (var i = 0; i < deleteButton.length; i++) {
+                  deleteButton[i].addEventListener("click", removeClass);
+              }
+          }
+          
+          function removeClass(event) {
+              console.log("trying to remove class");
+              var clickedItem = event.target.id;
+              var className = clickedItem.split("-")[1];
+              console.log(className);
+              firebase.database().ref("users").child(localStorage.uid).child("classes").child(className).remove();
+              displayClasses();
+              setDeleteButtonStyle();
+          }
+          
+          function setDeleteButtonStyle() {
+              var deleteButton = document.getElementsByClassName("delete-button");
+              for (var i = 0; i < deleteButton.length; i++) {
+                  if (isDeleting) {
+                      deleteButton[i].setAttribute("style", "position: fixed; left: 20px; height: 24px; width: 24px; display: inline;");
+                  } else {
+                      deleteButton[i].setAttribute("style", "position: fixed; left: 20px; height: 24px; width: 24px; display: none;");
+                  }
+              }
+          }
+          
+      </script>
+    </body>
+</html>

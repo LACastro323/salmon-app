@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ADD CLASSES</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Questions</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="http://code.jquery.com/jquery-2.0.0.js"></script>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
+    <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    
+    <!-- Latest compiled and minified CSS-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    
+    <!-- Include the compiled Ratchet CSS -->
+    <link href="ratchet.css" rel="stylesheet">
+    
+    <link rel="stylesheet" type="text/css" href="main.css">
+    
+  </head>
+  <body> 
+      <!-- Make sure all your bars are the first things in your <body> -->
+      <header class="bar bar-nav">
+        <a href="subjectMenu.html" class="icon pull-left" id="back-button"><img src="ARROW%20ICON.svg"></a>
+          <br>
+        <h1 id="subject" class="title pink">ADD CLASSES</h1>
+        <div class="icon pull-right dropdown" id="dropdown">
+              <div class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><img src="dropdown-menu-button.svg" id="dropdown-button"></div>
+              <ul class="dropdown-menu dropdown-menu-right">
+                  <li><a href="profile.html">Profile</a></li>
+                  <li><a href="signOut.html">Log out</a></li>
+              </ul></div>
+      </header>
+      <div id="white-container">
+          <ul class="table-view" id="class-list" style="margin-top: 100px">
+          </ul>
+      </div>
+          
+      <script src="https://www.gstatic.com/firebasejs/3.2.0/firebase.js"></script>
+      <script>
+          var isBlue;
+          
+          function addToDatabase() {
+              console.log("Retrieving current user...");
+              console.log(localStorage.uid);
+              firebase.database().ref("users").child(localStorage.uid).child("classes").set({
+                  classNumber: 0,
+                  class0: 0
+              })
+          }
+          
+          window.onload = function() {
+              initializeFirebase();
+              displayClasses();
+              document.querySelector("#class-list").addEventListener("click", addToUser);
+          }
+
+          function displayClasses() {
+              $("#class-list").empty();
+              console.log(localStorage.uid);
+              var ref = firebase.database().ref("classes");
+              ref.once("value").then(function(snapshot) {
+                  var temp = snapshot.val();
+                  var currentNumber = temp.classNumber;
+                  console.log("Classes: " + currentNumber);
+                  loadClasses(currentNumber);
+              });
+          }
+
+          function loadClasses(count) {
+              isBlue = false;
+              var ref = firebase.database().ref("classes");
+              ref.once("value").then(function(snapshot) {
+                    snapshot.forEach(function(childSnapshot) {
+                        var key = childSnapshot.key;
+                        console.log(key);
+                        addClass(key);
+                    });
+              });            
+          }
+          
+          function addClass(className) {
+              var newLi = document.createElement("li");
+              var ref = firebase.database().ref("users").child(localStorage.uid).child("classes");
+              ref.once("value").then(function(snapshot) {
+                  if(!snapshot.hasChild(className) && className != "classNumber") {
+                      var newLi = document.createElement("li");
+                      var node = document.createTextNode(className);
+                      var newA = document.createElement("a");
+                      newA.appendChild(node);
+                      newA.setAttribute("class", "navigate-right");
+                      newA.setAttribute("id", className);
+                      newA.setAttribute("href", "#")
+                      newLi.appendChild(newA);
+                      if (isBlue) {
+                          newLi.setAttribute("class", "table-view-cell subject-line blueRow");
+                          isBlue = false;
+                      } else {
+                          newLi.setAttribute("class", "table-view-cell subject-line whiteRow");
+                          isBlue = true;
+                      }
+                      document.getElementById("class-list").appendChild(newLi);
+                  }
+              });               
+        }
+          
+          function addToUser(event) {
+              if (event.target !== event.currentTarget) {
+                  var clickedItem = event.target.id;
+                  console.log(clickedItem);
+                  firebase.database().ref("users").child(localStorage.uid).child("classes").child(clickedItem).set({
+                      class: clickedItem
+                  }).then(displayClasses());
+                  alert("Class has been added");
+              }
+              event.stopPropagation();
+          }
+          
+          function initializeFirebase() {
+              var config = {
+                  apiKey: "AIzaSyB8T4pCLKOBoP1l52ztAqvRXAGHPea_V-A",
+                  authDomain: "prototype2016-e5247.firebaseapp.com",
+                  databaseURL: "https://prototype2016-e5247.firebaseio.com",
+                  storageBucket: "prototype2016-e5247.appspot.com",
+              };
+              app = firebase.initializeApp(config);
+              console.log("Initialized firebase");
+          }
+      </script>
+    </body>
+</html>

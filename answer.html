@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>ANSWER</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+    
+</head>
+
+<body>
+    <header class="bar bar-nav">
+        <a href="askQuestion.html?subject=" class="icon pull-left" id="back-button"><img src="ARROW%20ICON.svg"></a>
+        <h1 id="subject" class="title pink">ANSWER</h1>
+        <div class="icon pull-right dropdown" id="dropdown">
+              <div class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><img src="dropdown-menu-button.svg" id="dropdown-button"></div>
+              <ul class="dropdown-menu dropdown-menu-right">
+                  <li><a href="profile.html">Profile</a></li>
+                  <li><a href="signOut.html">Log out</a></li>
+              </ul></div>
+    </header>
+    <div id="white-container">
+        <br><br><br><br>
+        <div id="questionDisplay"></div>
+        <div id="question-list">
+        </div>
+        <div id="openAddQuestion" style="width: 60px; height: 60px; position: absolute; right: 40px; bottom: 40px;"><img style="width: 100% ; height:  100% ;"src="assets/add.svg"></div>
+        <div id="askQuestionModal" class="modal fade">
+            <div role="document" class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">Answer</div>
+                    <div class="modal-body"><form method="post">
+                        <input id="askedQuestion" type="text" name="Question" input="" placeholder="Answer"><br>
+                        <input id="explanation" type="text" name="explanation" input="" placeholder="Explanation">
+                        <div id="button"> Submit</div>
+                    </form></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <script src="https://www.gstatic.com/firebasejs/3.2.0/firebase.js"></script>
+    <script>
+        var questionNumber;
+        var isBlue;
+        
+        window.onload = function() {
+            initializeFirebase();
+            var query = location.search.split("?questionNumber=question")[1];
+            questionNumber = query.split("&subject=")[0];
+            var subject = query.split("&subject=")[1];
+            if (subject == "UNDEFINED") {
+                document.getElementById("back-button").setAttribute("href", "profile.html");
+            } else {
+                subject = parseSubject();
+                $("#subject").text(subject.toUpperCase());
+                document.getElementById("back-button").setAttribute("href", "askQuestion.html?subject=" + subject);
+            }
+            
+            addButton();
+            document.getElementById("button").addEventListener("click", function() {
+                if (document.getElementById("askedQuestion").value != "") {
+                    $("#content").empty();
+                    $('#askQuestionModal').modal('hide');
+                    uploadQuestion();
+                }
+            });
+            var ref = firebase.database().ref("questions").child("question" + questionNumber);
+            ref.once("value").then(function(snapshot) {
+                var temp = snapshot.val();
+                var currentNumber = temp.answerNumber;
+                postQuestionToPage(currentNumber);
+                var text = temp.question;
+                $("#questionDisplay").text(text);
+            });
+        }
+
+        function uploadQuestion() {
+            var ref = firebase.database().ref("questions").child("question" + questionNumber);
+            ref.once("value").then(function(snapshot) {
+                var temp = snapshot.val();
+                var currentNumber = temp.answerNumber;
+                currentNumber++;
+                next(currentNumber);
+            });
+        }
+
+        function next(currentNumber) {
+            var text = document.getElementById("askedQuestion").value;
+            var expl = document.getElementById("explanation").value;
+            $("#askedQuestion").val('');
+            $("#explanation").val('');
+            firebase.database().ref("questions").child("question" + questionNumber).update({
+                answerNumber: currentNumber
+            });
+            firebase.database().ref("questions").child("question" + questionNumber).child("answer" + currentNumber).set({
+                answer: text,
+                explanation: expl
+            });
+            postQuestionToPage();
+        }
+
+        function postQuestionToPage() {
+            $("#content").empty();
+            var ref = firebase.database().ref("questions").child("question" + questionNumber);
+            ref.once("value").then(function(snapshot) {
+                extractQuestions(snapshot.val().answerNumber);
+            });
+        }
+
+        function extractQuestions(count) {
+            isBlue = true;
+            for (var i = count; i >= 1; i--) {
+                var ref = firebase.database().ref("questions").child("question" + questionNumber).child("answer" + i);
+                ref.once("value").then(function(snapshot) {
+                    displayAnswer(snapshot.val().answer, snapshot.val().explanation);
+                });
+            }
+        }
+
+        function displayAnswer(ans, expl) {
+            var newLi = document.createElement("p");
+            newLi.appendChild(document.createTextNode(ans));
+            newLi.appendChild(document.createElement("br"));
+            newLi.appendChild(document.createTextNode(expl));
+            document.getElementById("question-list").appendChild(newLi);
+            if (isBlue) {
+                newLi.setAttribute("class", "blueRow");
+                isBlue = false;
+            } else {
+                newLi.setAttribute("class", "whiteRow");
+                isBlue = true;
+            }
+        }
+
+        function initializeFirebase() {
+            var config = {
+                apiKey: "AIzaSyB8T4pCLKOBoP1l52ztAqvRXAGHPea_V-A",
+                authDomain: "prototype2016-e5247.firebaseapp.com",
+                databaseURL: "https://prototype2016-e5247.firebaseio.com",
+                storageBucket: "prototype2016-e5247.appspot.com",
+            };
+            firebase.initializeApp(config);
+        }
+        
+        function addButton() {
+            $("#openAddQuestion").click(function(){
+                $('#askQuestionModal').modal({
+                    keyboard: true
+                })
+            })
+        }
+        
+        function parseSubject() {
+            var subject = location.search.split("subject=")[1];
+            var array = subject.split("%20");
+            subject = "";
+            for (var i = 0; i < array.length; i++) {
+                if (i != 0) subject += " ";
+                subject += array[i];
+            }
+            return subject;
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Log In to Salmon</title>
+    <script src="http://code.jquery.com/jquery-2.0.0.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <!-- Material Design Theming -->
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="ratchet.css">
+    <link rel="stylesheet" href="main.css">
+    
+   <script src="https://www.gstatic.com/firebasejs/3.2.0/firebase.js"></script>
+</head>
+    
+<body class="center-screen">
+    <img align="middle" id="salmon-logo" src="LOGO.svg" alt="Radiant Logo">
+    <form id="user">
+        <input class="mdl-textfield__input" type="text" id="email" name="email" placeholder="School Email"/>
+        <input class="mdl-textfield__input" type="password" id="password" name="password" placeholder="Password"/>
+        <br><br>
+        <div class="mdl-button mdl-js-button" id="quickstart-sign-in" name="signin">Log In</div>
+    </form>
+    <br>
+    <p>Don't have an account? <a href="signUp.html">Sign up</a></p>
+
+    <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+    <script src="logIn.js"></script>
+    <script>
+        function initializeFirebase() {
+    var config = {
+        apiKey: "AIzaSyB8T4pCLKOBoP1l52ztAqvRXAGHPea_V-A",
+        authDomain: "prototype2016-e5247.firebaseapp.com",
+        databaseURL: "https://prototype2016-e5247.firebaseio.com",
+        storageBucket: "prototype2016-e5247.appspot.com",
+    };
+    app = firebase.initializeApp(config);
+    console.log("Initialized Firebase");
+}
+    </script>
+</body>
+</html>

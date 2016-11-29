@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <title>Profile</title>
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+            <!-- Latest compiled and minified CSS -->
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+            <!-- Optional theme -->
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+            <!-- Latest compiled and minified JavaScript-->
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+            <link rel="stylesheet" type="text/css" href="main.css">           
+        </head>
+        <body>
+            <header class="bar bar-nav">
+                <a href="subjectMenu.html" class="icon pull-left" id="back-button"><img src="ARROW%20ICON.svg"></a>
+                <h1 id="title" class="title pink">Username</h1>
+                <div class="icon pull-right dropdown" id="dropdown">
+                      <div class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><img src="dropdown-menu-button.svg" id="dropdown-button"></div>
+                      <ul class="dropdown-menu dropdown-menu-right">
+                          <li><a href="signOut.html">Log out</a></li>
+                      </ul>
+                </div>
+            </header>
+            <div id="white-container">
+                <br><br><br>
+                <div id="content">
+                </div>
+            </div>
+            
+            <script src="https://www.gstatic.com/firebasejs/3.2.0/firebase.js"></script>
+            <script>
+                var user;
+                var isBlue;
+                
+                
+                window.onload = function(){
+                    initializeFirebase();
+                    user = localStorage.uid;
+                    console.log(user);
+                    var ref = firebase.database().ref("users").child(user);
+                    ref.once("value").then(function(snapshot) {
+                        $("#title").text(snapshot.val().username.toUpperCase());
+                    });
+                    
+                    document.querySelector("#content").addEventListener("click", loadAnswersPage);
+                    var ref= firebase.database().ref("users").child(user).child("questions");
+                    ref.once("value").then(function(snapshot){
+                        postQuestionToPage(snapshot.val().questionNumber);
+                    });
+                }
+                
+                function loadAnswersPage(event) {
+                    if (event.target !== event.currentTarget) {
+                        var clickedItem = event.target.id;
+                        window.location = "answer.html?questionNumber=" + clickedItem + "&subject=UNDEFINED";
+                    }
+                    e.stopPropagation();
+                }
+    
+                function postQuestionToPage(){
+                    console.log("I ran!");
+                    $("#content").empty();
+                    var ref= firebase.database().ref("users").child(user).child("questions");
+                    ref.once("value").then(function(snapshot){
+                        extractQuestions(snapshot.val().questionNumber);
+                    });
+                }
+                
+                function extractQuestions(count) {
+                    isBlue = false;
+                    for (var i = count; i >= 1; i--){
+                        console.log(i);
+                        var ref= firebase.database().ref("users").child(user).child("questions").child("question" + i);
+                        ref.once("value").then(function(snapshot){
+                            var temp = snapshot.val();
+                            var refNumber = temp.refNumber;
+                            lookUpInQuestionTable(refNumber);
+                        });
+                    }
+                }
+                
+                function lookUpInQuestionTable(refNumber) {
+                    var newP = document.createElement("p");
+                    var ref = firebase.database().ref("questions").child("question" + refNumber);
+                    ref.once("value").then(function(snapshot){
+                        var temp = snapshot.val();
+                        var text = temp.question;
+                        var node = document.createTextNode(text);
+                        newP.appendChild(node);
+                        document.getElementById("content").appendChild(newP);
+                    });
+                    newP.setAttribute("id", "question" + refNumber);
+                    if (isBlue) {
+                        newP.setAttribute("class", "blueRow");
+                        isBlue = false;
+                    } else {
+                        newP.setAttribute("class", "whiteRow");
+                        isBlue = true;
+            }
+                }
+                
+                function initializeFirebase() {
+                    var config = {
+                        apiKey: "AIzaSyB8T4pCLKOBoP1l52ztAqvRXAGHPea_V-A",
+                        authDomain: "prototype2016-e5247.firebaseapp.com",
+                        databaseURL: "https://prototype2016-e5247.firebaseio.com",
+                        storageBucket: "prototype2016-e5247.appspot.com",
+                    };
+                    firebase.initializeApp(config);
+                }
+            </script>         
+        </body>
+</html>
